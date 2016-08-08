@@ -1,21 +1,21 @@
 // author - Antoine Barbaroux
 
 import async from 'async'
-import apiGet from './apiCall'
+import apiGet from './apicall'
 import ARTISTS from './artists'
 
 console.log('starting\n', ARTISTS)
 
+// const print = x => (console.log(x), x)
 
 const fiddleWithSpotify = () => {
-  async.parallel([
+  async.series([
     cb => {
         setTimeout((cb) => {
         console.log('first', 'toto');
-      }, 1000), cb},
-    apiGet('artists/' + ARTISTS[0]),
-    cb => {cb(null, 1)}
-
+      }, 1000), cb(null, 1)},
+    apiGet(`artists`),
+    cb => {cb(3, 'the third errs')}
   ], console.log);
 }
 
