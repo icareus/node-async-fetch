@@ -15,7 +15,6 @@ const getIds = list => _.map(list, getId)
 const getName = i => i.name
 const getNames = list => _.map(list, getName)
 
-// const print = x => (console.log(x), x)
 const fetchArtist = (id, cb) => apiGet(`artists/${id}`)(cb)
 const fetchArtists = (list, cb) => async.map(list, fetchArtist, cb)
 const fetchRelated = id => cb => (
@@ -37,8 +36,6 @@ const testWaterfall = (id, callback) => (
     [
       fetchRelated(id),
       wf2,
-      // ids => async.map(ids, fetchTracks),
-      // tracks => cb => {console.log(tracks); cb(null, tracks)}
     ],
     callback
   )
