@@ -17,7 +17,7 @@ const doFetch = (endpoint, options) => (
 // )
 
 const throwIfBad = (res) => {
-  if (res.status >= 400) { throw res }
+  if (res.status >= 400 || res.status < 200) { throw res }
 }
 
 const apiGet = endpoint => cb => {
@@ -28,8 +28,5 @@ const apiGet = endpoint => cb => {
     .then(json => cb(null, json))
     .catch(res => cb(res.status, res.statusText))
 }
-      // (
-        // if (res.status >= 400) throw res
-        // else console.log(err, res), res.json())
 
 export default apiGet
