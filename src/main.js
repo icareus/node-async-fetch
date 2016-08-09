@@ -1,73 +1,59 @@
 // author - Antoine Barbaroux
 
 import async from 'async'
-import apiGet from './apicall'
+import { apiGet, getArtist, getRelated, getTracks } from './apicall'
 import ARTISTS from './artists'
 import _ from 'lodash'
 
-console.log('starting\n', ARTISTS)
-
-const sortByPop = list => _.sortBy(list, i => i.popularity)
-const topTwo = list => _.slice(sortByPop(list), 0, 2)
+const sortByPop = list => _.sortBy(list, i => (i.popularity * -1))
+const topN = (list, n) => _.slice(sortByPop(list), 0, n)
 
 const getId = i => i.id
 const getIds = list => _.map(list, getId)
 const getName = i => i.name
 const getNames = list => _.map(list, getName)
 
-const fetchArtist = (id, cb) => apiGet(`artists/${id}`)(cb)
-const fetchArtists = (list, cb) => async.map(list, fetchArtist, cb)
-const fetchRelated = id => cb => (
-  apiGet(`artists/${id}/related-artists`)(
-    (e, r) => cb(e, getIds(topTwo(r.artists)))
+//const cb_success = (e, r) => 
+const fetchArtist = id => cb => {
+  getArtist(id)((e, r) => cb(null, {id: r.id, name: r.name}))
+}
+const fetchRelated = (artist, cb) => {
+  getRelated(artist.id)((e, r) => cb(e, getIds(topN(r.artists, 2))))
+}
+const fetchTracks = (ids, cb) => {
+  async.map(
+    ids,
+    (id, callback) => getTracks(id)((e, {tracks}) => {
+          callback(null, topN(tracks, 1));
+        }),
+    (err, tracks) => {
+      cb(null, _.first(tracks));
+    }
   )
-)
-const fetchTracks = (id, cb) => (
-  apiGet(`artists/${id}/top-tracks?country=FR`)(
-    (e, r) => cb(e, getNames(topTwo(r.tracks)))
-  )
-)
+}
 
 const wf = id => fetchRelated(id)
-const wf2 = (ids, cb) => async.map(ids, fetchTracks, cb)
 
-const testWaterfall = (id, callback) => (
+const artistWaterfall = (id, cb) => (
   async.waterfall(
     [
-      fetchRelated(id),
-      wf2,
+      fetchArtist(id),
+      fetchRelated,
+      fetchTracks,
     ],
-    callback
+    cb
   )
 )
 
 const fiddleWithSpotify = () => {
   async.map(
     ARTISTS,
-    testWaterfall,
-    console.log
+    artistWaterfall,
+    (err, res) => {
+      const finalTrack = _.first(sortByPop(_.flatten(res)))
+      console.log(finalTrack.name, finalTrack.popularity)}
   )
 }
-// const topFive = artists => 
-
-    // cb => {
-    //     setTimeout((cb) => {
-    //     console.log('first', 'toto');
-    //   }, 1000), cb(null, 1)},
-    // id => apiGet(`artists/${id}`),
-// const first = message => cb => {
-//   console.log(message);
-//   cb(null, '1st')
-// }
-// const second = cb => {cb(null, '2nd')}
-
-// const fiddleWithSpotify = () => {
-//   async.parallel([
-//     first('Et la ca marche'),
-//     second,
-//     cb => {cb(3, 'the third errs')},
-//   ], console.log);
-// }
 
 fiddleWithSpotify()
 console.log('done');

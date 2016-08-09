@@ -5,23 +5,11 @@ const ADDR = 'https://api.spotify.com/v1/'
 const doFetch = (endpoint, options) => (
   fetch(ADDR + endpoint, options))
 
-// const apiGet = route => cb => (
-//   // fetch(ADDR.concat(route))
-//   //   .then((err, res) => {
-//   //     if (err) { return cb(err) }
-//   //     console.log(route);
-//   //     if (res.status >= 400) { return cb(res.status) }
-//   //     return res.json()
-//   //   })
-//   //   .then(json => cb(null, json))
-// )
-
 const throwIfBad = (res) => {
   if (res.status >= 400 || res.status < 200) { throw res }
 }
 
-const apiGet = endpoint => cb => {
-  console.log(`Fetch called with ${endpoint}`)
+export const apiGet = endpoint => cb => {
   doFetch(endpoint)
     .then(
       res => (throwIfBad(res), res.json()))
@@ -29,4 +17,6 @@ const apiGet = endpoint => cb => {
     .catch(res => cb(res.status, res.statusText))
 }
 
-export default apiGet
+export const getTracks = id => apiGet(`artists/${id}/top-tracks?country=FR`)
+export const getArtist = id => apiGet(`artists/${id}`)
+export const getRelated = id => apiGet(`artists/${id}/related-artists`)
